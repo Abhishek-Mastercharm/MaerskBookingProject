@@ -1,56 +1,98 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import { Box, Button, Typography, CircularProgress } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import api from "../api/bookingApi";
-
 import Header from "../components/Header";
-import Loader from "../components/Loader";
-import SearchBox from "../components/SearchBox";
-import BookingTable from "../components/BookingTable";
+import KPICards from "../components/KPICards";
+import ShipmentGrid from "../components/ShipmentGrid";
+import ImportModal from "../components/ImportModal";
 
 function Dashboard() {
   const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([]);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const [rows, setRows] = useState([]);
-
-  const fetchBookings = async (bookings) => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-
-      const response = await api.get("/bookings", {
-        params: {
-          booking: bookings.join(","),
-        },
-      });
-
-      console.log(response.data);
-
-      const tableRows = (response.data.results || [])
-        .filter((item) => item.success)
-        .map((item, index) => ({
-          id: index + 1,
-          ...item.row,
-        }));
-
-      setRows(tableRows);
+      const response = await api.get("/dashboard");
+      if (response.data.success) {
+        setData(response.data.data);
+      }
     } catch (err) {
-      console.error(err);
-
-      alert("Unable to fetch booking details.");
+      console.error("Failed to fetch dashboard data:", err);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRefreshAll = async () => {
+    try {
+      setRefreshing(true);
+      await api.post("/refresh-all");
+      await fetchData(); // Refetch updated data
+    } catch (err) {
+      console.error("Failed to refresh shipments:", err);
+      alert("Error refreshing shipments.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
-    <div className="app">
+    <Box sx={{ p: 3, bgcolor: "#f4f6f8", minHeight: "100vh" }}>
       <Header />
+      
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", my: 3 }}>
+        <Typography variant="h4" fontWeight="bold">
+          Shipment Dashboard
+        </Typography>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<CloudUploadIcon />}
+            onClick={() => setImportModalOpen(true)}
+          >
+            Import Excel
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={refreshing ? <CircularProgress size={20} /> : <RefreshIcon />}
+            onClick={handleRefreshAll}
+            disabled={refreshing}
+          >
+            {refreshing ? "Refreshing..." : "Refresh All Shipments"}
+          </Button>
+        </Box>
+      </Box>
 
-      <SearchBox onFetch={fetchBookings} loading={loading} />
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          <KPICards data={data} />
+          <Box mt={4} sx={{ bgcolor: "white", p: 2, borderRadius: 2, boxShadow: 1 }}>
+            <ShipmentGrid data={data} />
+          </Box>
+        </>
+      )}
 
-      {loading && <Loader />}
-
-      {!loading && rows.length > 0 && <BookingTable rows={rows} />}
-    </div>
+      <ImportModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onSuccess={fetchData}
+      />
+    </Box>
   );
 }
 
