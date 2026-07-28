@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import trackingRoutes from "./routes/trackingRoutes.js";
 import importRoutes from "./routes/importRoutes.js";
 import { getDashboardData, refreshShipmentTracking } from "./services/shipmentService.js";
+import { startCronJobs } from "./services/cronService.js";
 
 dotenv.config();
 
@@ -43,4 +44,7 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // Start automated background polling
+  startCronJobs();
 });
