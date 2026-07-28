@@ -1,6 +1,7 @@
 import prisma from "../config/prismaClient.js";
 import { fetchBookingEvents } from "./trackingService.js";
 import { transformBooking } from "../utils/transformer.js";
+import { sendShipmentUpdateAlert } from "./telegramService.js";
 
 // Save uploaded invoice/booking mappings
 export async function saveImportedBookings(records) {
@@ -55,6 +56,24 @@ export async function refreshShipmentTracking(bookingNumbers) {
         where: { bookingNo: booking }
       });
 
+      const hasStatusChanged = !currentTracking || currentTracking.shipmentStatus !== transformed.shipmentStatus;
+      
+      const newEta = transformed.eta ? new Date(transformed.eta).getTime() : null;
+      const oldEta = currentTracking?.eta ? currentTracking.eta.getTime() : null;
+
+      const newVesselDate = transformed.vesselDate ? new Date(transformed.vesselDate).getTime() : null;
+      const oldVesselDate = currentTracking?.vesselDate ? currentTracking.vesselDate.getTime() : null;
+
+      const hasDataChanged = !currentTracking || 
+        hasStatusChanged ||
+        currentTracking.shippingLine !== transformed.shippingLine ||
+        currentTracking.vesselName !== transformed.vesselName ||
+        currentTracking.voyageNo !== transformed.voyageNo ||
+        oldVesselDate !== newVesselDate ||
+        oldEta !== newEta ||
+        currentTracking.loadingPort !== transformed.loadingPort ||
+        currentTracking.destinationPort !== transformed.destinationPort;
+
       // Update tracking record
       const updatedRecord = await prisma.shipmentTracking.upsert({
         where: { bookingNo: booking },
@@ -83,12 +102,38 @@ export async function refreshShipmentTracking(bookingNumbers) {
       });
 
       // If status changed or it's a new record, add to History
-      if (!currentTracking || currentTracking.shipmentStatus !== transformed.shipmentStatus) {
+      if (hasStatusChanged) {
         await prisma.trackingHistory.create({
           data: {
             bookingNo: booking,
             status: transformed.shipmentStatus || "UNKNOWN",
           }
+        });
+      }
+
+      // If ANY relevant data changed, send Telegram alert
+      if (hasDataChanged) {
+        // Fetch invoice number for the notification
+        const invoiceRecord = await prisma.invoice.findUnique({
+          where: { bookingNo: booking }
+        });
+
+        const statusTransition = currentTracking 
+          ? (hasStatusChanged ? `${currentTracking.shipmentStatus} → ${transformed.shipmentStatus}` : transformed.shipmentStatus)
+          : `New: ${transformed.shipmentStatus}`;
+
+        // Send Telegram Notification
+        await sendShipmentUpdateAlert({
+          invoice: invoiceRecord ? invoiceRecord.invoiceNo : "N/A",
+          booking: booking,
+          shippingLine: transformed.shippingLine,
+          vessel: transformed.vesselName,
+          voyage: transformed.voyageNo,
+          status: statusTransition,
+          loadingPort: transformed.loadingPort,
+          destination: transformed.destinationPort,
+          eta: transformed.eta ? new Date(transformed.eta).toLocaleDateString('en-GB') : "N/A",
+          updated: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
         });
       }
 
