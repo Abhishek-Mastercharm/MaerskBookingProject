@@ -40,6 +40,7 @@ export const sendShipmentUpdateAlert = async (updateData) => {
     shippingLine = 'N/A',
     vessel = 'N/A',
     voyage = 'N/A',
+    vesselDate = 'N/A',
     status = 'N/A',
     loadingPort = 'N/A',
     destination = 'N/A',
@@ -62,16 +63,19 @@ ${shippingLine}
 <b>Vessel:</b>
 ${vessel}
 
+<b>Vessel Date:</b>
+${vesselDate}
+
 <b>Voyage:</b>
 ${voyage}
 
 <b>Status:</b>
 ${status}
 
-<b>Loading Port:</b>
+<b>POL (Loading Port):</b>
 ${loadingPort}
 
-<b>Destination:</b>
+<b>POD (Destination):</b>
 ${destination}
 
 <b>ETA:</b>

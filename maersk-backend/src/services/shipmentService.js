@@ -129,6 +129,7 @@ export async function refreshShipmentTracking(bookingNumbers) {
           shippingLine: transformed.shippingLine,
           vessel: transformed.vesselName,
           voyage: transformed.voyageNo,
+          vesselDate: transformed.vesselDate ? new Date(transformed.vesselDate).toLocaleDateString('en-GB') : "N/A",
           status: statusTransition,
           loadingPort: transformed.loadingPort,
           destination: transformed.destinationPort,

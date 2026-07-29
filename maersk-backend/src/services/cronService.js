@@ -1,11 +1,11 @@
 import cron from "node-cron";
 import { getDashboardData, refreshShipmentTracking } from "./shipmentService.js";
 
-// Run this job every 4 hours. You can change the cron expression based on how often Maersk updates.
+// Run this job every 5 minutes for testing. You can change this back to every few hours later.
 // Format: minute hour dayOfMonth month dayOfWeek
-// "0 */4 * * *" means "at minute 0 past every 4th hour"
+// "*/5 * * * *" means "every 5 minutes"
 export const startCronJobs = () => {
-  cron.schedule("0 */4 * * *", async () => {
+  cron.schedule("*/5 * * * *", async () => {
     console.log("⏰ [CRON] Starting automatic shipment tracking refresh...");
     try {
       // 1. Get all active bookings from the database
