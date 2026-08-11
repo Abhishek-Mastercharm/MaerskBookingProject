@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: maersk-backend
+    env: node
+    rootDir: maersk-backend
+    buildCommand: npm install && npx prisma generate && npx prisma db push
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: MAERSK_CLIENT_ID
+        sync: false
+      - key: MAERSK_CLIENT_SECRET
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+
+  - type: web
+    name: frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: maersk-backend
+          envVarKey: RENDER_EXTERNAL_URL
