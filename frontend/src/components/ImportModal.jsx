@@ -9,6 +9,7 @@ import {
   Box,
   CircularProgress
 } from "@mui/material";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import api from "../api/bookingApi";
 
 function ImportModal({ open, onClose, onSuccess }) {
@@ -45,31 +46,91 @@ function ImportModal({ open, onClose, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} onClose={!loading ? onClose : undefined} maxWidth="sm" fullWidth>
-      <DialogTitle>Import Excel / CSV</DialogTitle>
+    <Dialog 
+      open={open} 
+      onClose={!loading ? onClose : undefined} 
+      maxWidth="sm" 
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2, p: 1 }
+      }}
+    >
+      <DialogTitle sx={{ fontWeight: "bold", pb: 1 }}>Import Excel / CSV</DialogTitle>
       <DialogContent>
-        <Box mt={2}>
-          <Typography variant="body2" gutterBottom>
-            Upload an Excel or CSV file containing <strong>OUR INV NO</strong> and <strong>BOOKING NO</strong> columns.
+        <Box mt={1}>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Upload an Excel or CSV file containing <strong>OUR INV NO</strong> and <strong>BOOKING NO</strong> columns to sync shipments.
           </Typography>
-          <input
-            type="file"
-            accept=".xlsx, .xls, .csv"
-            onChange={handleFileChange}
-            style={{ marginTop: "1rem" }}
-          />
+          
+          <Box sx={{ mt: 3, display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1.5 }}>
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<CloudUploadIcon />}
+              sx={{
+                color: "#0090da",
+                borderColor: "#0090da",
+                textTransform: "none",
+                fontWeight: "bold",
+                "&:hover": {
+                  borderColor: "#0072b0",
+                  bgcolor: "rgba(0, 144, 218, 0.04)",
+                }
+              }}
+            >
+              Choose File
+              <input
+                type="file"
+                accept=".xlsx, .xls, .csv"
+                hidden
+                onChange={handleFileChange}
+              />
+            </Button>
+            
+            {file && (
+              <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "medium", mt: 0.5 }}>
+                Selected File: <span style={{ color: "#0090da" }}>{file.name}</span> ({(file.size / 1024).toFixed(2)} KB)
+              </Typography>
+            )}
+          </Box>
         </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+      <DialogActions sx={{ px: 3, pb: 2, gap: 1.5 }}>
+        <Button 
+          onClick={onClose} 
+          disabled={loading}
+          variant="outlined"
+          sx={{
+            color: "#666",
+            borderColor: "#ccc",
+            textTransform: "none",
+            fontWeight: "bold",
+            "&:hover": {
+              borderColor: "#999",
+              bgcolor: "rgba(0, 0, 0, 0.04)",
+            }
+          }}
+        >
           Cancel
         </Button>
         <Button
           onClick={handleUpload}
-          color="primary"
           variant="contained"
           disabled={!file || loading}
-          startIcon={loading ? <CircularProgress size={20} /> : null}
+          startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <CloudUploadIcon />}
+          sx={{
+            bgcolor: "#00243d",
+            color: "white",
+            textTransform: "none",
+            fontWeight: "bold",
+            "&:hover": {
+              bgcolor: "#001a2d",
+            },
+            "&.Mui-disabled": {
+              bgcolor: "rgba(0, 0, 0, 0.12)",
+              color: "rgba(0, 0, 0, 0.26)",
+            }
+          }}
         >
           {loading ? "Uploading..." : "Upload & Save"}
         </Button>

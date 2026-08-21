@@ -53,21 +53,50 @@ function Dashboard() {
         <Typography variant="h4" fontWeight="bold">
           Shipment Dashboard
         </Typography>
-        <Box display="flex" gap={2}>
+        <Box sx={{ display: "flex", gap: 2.5 }}>
           <Button
             variant="contained"
-            color="primary"
             startIcon={<CloudUploadIcon />}
             onClick={() => setImportModalOpen(true)}
+            sx={{
+              bgcolor: "#00243d",
+              color: "white",
+              fontWeight: "bold",
+              px: 3,
+              py: 1.2,
+              borderRadius: "6px",
+              textTransform: "none",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.15)",
+              "&:hover": {
+                bgcolor: "#001a2d",
+                boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+              },
+            }}
           >
             Import Excel
           </Button>
           <Button
             variant="outlined"
-            color="secondary"
-            startIcon={refreshing ? <CircularProgress size={20} /> : <RefreshIcon />}
             onClick={handleRefreshAll}
             disabled={refreshing}
+            startIcon={refreshing ? <CircularProgress size={18} color="inherit" /> : <RefreshIcon />}
+            sx={{
+              color: "#00243d",
+              borderColor: "#00243d",
+              fontWeight: "bold",
+              px: 3,
+              py: 1.2,
+              borderRadius: "6px",
+              textTransform: "none",
+              "&:hover": {
+                borderColor: "#001a2d",
+                bgcolor: "rgba(0, 36, 61, 0.04)",
+              },
+              "&.Mui-disabled": {
+                borderColor: "rgba(0, 0, 0, 0.12)",
+                color: "rgba(0, 0, 0, 0.26)",
+              }
+            }}
           >
             {refreshing ? "Refreshing..." : "Refresh All Shipments"}
           </Button>
